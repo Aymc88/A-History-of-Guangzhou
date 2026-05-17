@@ -58,13 +58,17 @@ def _svg_for(motif: str, topic_id: str | None = None) -> str:
     return _rich_illus_for(topic_id, motif)
 
 
-# Real QR code SVG for the Guangzhou project link (https://github.com/eren23/openflipbook)
-QR_SVG = (
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" shape-rendering="crispEdges" style="width:100%;height:100%;">'
-    '<path fill="#ffffff" d="M0 0h31v31H0z"/>'
-    '<path stroke="#000000" d="M1 1.5h7m2 0h1m1 0h3m2 0h5m1 0h7M1 2.5h1m5 0h1m6 0h5m2 0h1m1 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m1 0h2m1 0h2m2 0h2m3 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h2m2 0h2m2 0h1m2 0h2m1 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m3 0h2m1 0h1m1 0h2m3 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m3 0h1m1 0h1m3 0h2M1 9.5h1m1 0h5m3 0h1m4 0h1m1 0h2m1 0h1m1 0h5M5 10.5h1m3 0h6m2 0h1m2 0h2m1 0h3m3 0h1M1 11.5h2m3 0h3m1 0h2m1 0h4m1 0h2m1 0h1m3 0h1M1 12.5h2m1 0h2m2 0h1m3 0h3m1 0h1m4 0h1m4 0h1m1 0h1M3 13.5h5m2 0h1m4 0h5m6 0h2M2 14.5h3m3 0h1m1 0h1m2 0h1m3 0h9m3 0h1M1 15.5h4m2 0h1m1 0h2m1 0h1m3 0h3m2 0h2m2 0h3M3 16.5h4m1 0h2m5 0h2m3 0h6m2 0h1M1 17.5h1m2 0h1m2 0h1m2 0h2m1 0h1m4 0h1m1 0h1m1 0h1m1 0h1m1 0h2M1 18.5h1m6 0h1m1 0h1m1 0h4m1 0h4m1 0h4m1 0h1m1 0h1M1 19.5h1m1 0h2m2 0h1m1 0h2m3 0h3m1 0h1m2 0h1m1 0h3m1 0h1M1 20.5h1m2 0h3m5 0h3m1 0h2m3 0h3m4 0h1M1 21.5h1m1 0h1m1 0h3m1 0h3m1 0h1m1 0h1m2 0h1m1 0h6m1 0h3M9 22.5h1m1 0h1m1 0h1m3 0h1m3 0h1m3 0h5M1 23.5h7m2 0h3m3 0h1m2 0h3m1 0h1m1 0h3M1 24.5h1m5 0h1m1 0h1m1 0h2m2 0h1m1 0h1m1 0h3m3 0h1m2 0h2M1 25.5h1m1 0h3m1 0h1m1 0h1m1 0h2m3 0h1m1 0h1m2 0h5m1 0h1M1 26.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m1 0h3m4 0h4M1 27.5h1m1 0h3m1 0h1m1 0h1m1 0h3m1 0h2m3 0h9M1 28.5h1m5 0h1m2 0h3m2 0h1m1 0h1m3 0h2m1 0h1m1 0h1m1 0h1M1 29.5h7m1 0h4m2 0h1m2 0h1m1 0h1m2 0h3m1 0h1"/>'
-    '</svg>'
-)
+# Real QR code PNG loaded dynamically for the Guangzhou project link
+def _load_qr_data_url() -> str:
+    import base64
+    from pathlib import Path
+    path = Path(__file__).parent.parent / "assets" / "illustrations" / "project-qr.png"
+    if path.exists():
+        encoded = base64.b64encode(path.read_bytes()).decode("utf-8")
+        return f"data:image/png;base64,{encoded}"
+    return ""
+
+QR_DATA_URL = _load_qr_data_url()
 
 
 # ---------------------------------------------------------------------------
@@ -115,7 +119,7 @@ def build_html(title: str = "广州两千八百年 · Guangzhou History Flipbook
                         and not any('一' <= ch <= '鿿' for ch in t["aliases"][1])
                         else t["aliases"][0]
                         for t in TOPICS[:8]],
-        "qr_svg": QR_SVG,
+        "qr_svg": QR_DATA_URL,
     }
     payload_json = json.dumps(payload, ensure_ascii=False)
 
@@ -976,8 +980,8 @@ _JS = r"""
                style="font-size: 15.5px; line-height: 1.85; color: var(--ink-soft); text-align: justify; margin: 0;"></p>
           </div>
           <div class="back-qr" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-width: 0; padding-left: 20px;">
-            <div class="qr-wrap" style="width: 170px; height: 170px; padding: 12px; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 1px solid var(--paper-edge); display: flex; align-items: center; justify-content: center;">
-              ${payload.qr_svg}
+            <div class="qr-wrap" style="width: 170px; height: 170px; padding: 8px; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 1px solid var(--paper-edge); display: flex; align-items: center; justify-content: center;">
+              <img src="${payload.qr_svg}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;" alt="QR Code">
             </div>
             <small data-zh="扫码探索广州项目" data-en="Scan to explore Guangzhou Project" style="color: var(--ink-soft); font-size: 11px; opacity: 0.8; letter-spacing: 0.05em; text-align: center; white-space: nowrap;"></small>
           </div>
