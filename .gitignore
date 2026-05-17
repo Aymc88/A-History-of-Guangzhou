@@ -1,0 +1,13 @@
+.DS_Store
+.generate_flipbook_state.json
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+.venv/
+venv/
+env/
+.idea/
+.vscode/

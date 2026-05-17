@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Comic Neue", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Lora", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --color-canvas: #f5efe2;
+  --color-ink: #1f1d1b;
+  --color-edge: rgba(31, 29, 27, 0.18);
+}
+
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-canvas: #f5efe2;
+  --color-ink: #1f1d1b;
+  --color-edge: rgba(31, 29, 27, 0.18);
+}
+
+:root[data-theme="sepia"] {
+  color-scheme: light;
+  --color-canvas: #efe2c8;
+  --color-ink: #3a2918;
+  --color-edge: rgba(58, 41, 24, 0.22);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #15130f;
+  --color-ink: #f3ead6;
+  --color-edge: rgba(243, 234, 214, 0.18);
+}
+
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+}
+
+@keyframes ec-ripple {
+  0%   { transform: scale(0.6); opacity: 1;   box-shadow: 0 0 0 0 rgba(255,255,255,0.9); }
+  70%  { transform: scale(1.6); opacity: 0.4; box-shadow: 0 0 0 14px rgba(255,255,255,0); }
+  100% { transform: scale(1.8); opacity: 0;   box-shadow: 0 0 0 18px rgba(255,255,255,0); }
+}
+
+/* Subtle warm-tint pulse on the outgoing image while the next page decodes.
+ * Held under 1.4s so it doesn't outlast a typical generation. */
+@keyframes ec-shimmer {
+  0%   { opacity: 1;   filter: blur(0px) saturate(1.0); }
+  50%  { opacity: 0.78; filter: blur(2px) saturate(1.06); }
+  100% { opacity: 1;   filter: blur(0px) saturate(1.0); }
+}
+
+.ec-morph-old {
+  animation: ec-shimmer 1.4s ease-in-out infinite;
+  will-change: opacity, filter;
+}
+
+.ec-morph-new {
+  will-change: mask-size, -webkit-mask-size;
+}
+
+/* Progressive-render draft. While the user-selected tier is still cooking,
+ * a fast-tier draft paints first; this gentle breathing blur signals "still
+ * sharpening" so the lower-quality preview reads as in-progress, not final.
+ * Disabled under prefers-reduced-motion (see media query below). */
+@keyframes ec-draft-breathe {
+  0%   { filter: blur(0.6px) saturate(0.96); opacity: 0.96; }
+  50%  { filter: blur(1.6px) saturate(1.02); opacity: 0.9; }
+  100% { filter: blur(0.6px) saturate(0.96); opacity: 0.96; }
+}
+
+.ec-draft {
+  animation: ec-draft-breathe 1.6s ease-in-out infinite;
+  will-change: filter, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ec-draft {
+    animation: none !important;
+  }
+  .ec-morph-old,
+  .ec-morph-new {
+    animation: none !important;
+    transition: opacity 180ms linear !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* Atlas: tiles fan in by BFS depth; connectors draw on slightly after.
+ * Both honor prefers-reduced-motion via the !important overrides below. */
+@keyframes ofb-tile-in {
+  0%   { opacity: 0; transform: scale(0.86); }
+  60%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.ofb-tile-in {
+  animation: ofb-tile-in 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+@keyframes ofb-edge-draw {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.ofb-edge-draw {
+  animation: ofb-edge-draw 320ms ease-out both;
+}
+
+/* Continuous downstream flow on connector arcs.
+ * The dasharray is "2 22" (24px period), so shifting the offset by 24px
+ * cycles seamlessly. Layered after `ofb-edge-draw` (same selector) so the
+ * initial fade-in delays the start without breaking the loop. */
+@keyframes ofb-edge-flow {
+  0%   { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -24; }
+}
+
+.ofb-edge-flow {
+  animation: ofb-edge-flow 1.8s linear infinite;
+}
+
+/* When both ofb-edge-draw and ofb-edge-flow apply to the same element,
+ * `animation` is a list — the draw runs once, the flow loops. The shared
+ * `animation-delay` (set inline as "Xms, Xms") staggers both by depth. */
+.ofb-edge-draw.ofb-edge-flow {
+  animation:
+    ofb-edge-draw 320ms ease-out both,
+    ofb-edge-flow 1.8s linear infinite;
+}
+
+/* Warm pulsing halo around the focused atlas tile. */
+@keyframes ofb-tile-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 140, 68, 0.55), 0 6px 24px rgba(0, 0, 0, 0.15); }
+  50%      { box-shadow: 0 0 0 18px rgba(239, 140, 68, 0), 0 12px 36px rgba(0, 0, 0, 0.22); }
+}
+
+.ofb-tile-glow {
+  animation: ofb-tile-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes ofb-mini-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55); }
+  50%      { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+}
+
+.ofb-mini-active {
+  animation: ofb-mini-pulse 1.6s ease-in-out infinite;
+}
+
+.ofb-heat-pin .ofb-heat-dot {
+  transition: transform 120ms ease-out;
+}
+.ofb-heat-pin:hover .ofb-heat-dot,
+.ofb-heat-pin:focus-visible .ofb-heat-dot {
+  transform: scale(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ofb-tile-in,
+  .ofb-edge-draw,
+  .ofb-edge-flow,
+  .ofb-edge-draw.ofb-edge-flow,
+  .ofb-tile-glow,
+  .ofb-mini-active {
+    animation: none !important;
+  }
+}

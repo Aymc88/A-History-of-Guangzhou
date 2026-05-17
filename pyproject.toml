@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "guangzhou-history-mcp"
+version = "0.1.0"
+description = "An MCP server about the 2,200-year history of Guangzhou, with a bilingual Lingnan-style flipbook viewer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "wilson8369" }]
+keywords = ["mcp", "guangzhou", "history", "flipbook", "lingnan"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "mcp>=1.2.0",
+]
+
+[project.scripts]
+guangzhou-history-mcp = "guangzhou_history_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["guangzhou_history_mcp"]

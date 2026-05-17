@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "guangzhou-history": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "/ABSOLUTE/PATH/TO/A History of Guangzhou",
+        "guangzhou-history-mcp"
+      ]
+    }
+  }
+}

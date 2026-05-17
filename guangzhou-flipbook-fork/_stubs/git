@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+if [[ "$1" == "clone" ]]; then
+  echo "[stub] git clone $*"
+  mkdir -p "${@: -1}/apps/web/public" "${@: -1}/apps/modal-backend" "${@: -1}/.git"
+  echo fake > "${@: -1}/.git/config"
+elif [[ "$1" == "-C" ]]; then
+  echo "[stub] git -C $*"
+fi
