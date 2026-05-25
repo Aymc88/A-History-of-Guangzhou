@@ -557,6 +557,10 @@ body[data-mode="book"]  .stage-query{display:none !important}
   position:absolute;bottom:22px;right:42px;color:var(--ink-soft);
   font-variant-numeric:tabular-nums;font-size:12px;letter-spacing:.18em;
 }
+.page .author{
+  position:absolute;bottom:22px;left:42px;color:var(--ink-soft);
+  font-size:12px;letter-spacing:.06em;opacity:.8;
+}
 
 /* Cover page */
 .page.cover{
@@ -923,6 +927,11 @@ _JS = r"""
     bookPages.forEach((p, i) => {
       const node = renderBookPage(p, i);
       node.style.zIndex = bookPages.length - i;
+      const authorEl = document.createElement("div");
+      authorEl.className = "author";
+      authorEl.setAttribute("data-zh", "陈一鸣");
+      authorEl.setAttribute("data-en", "Amanda Chen");
+      node.appendChild(authorEl);
       bookEl.appendChild(node);
     });
     applyLang();
