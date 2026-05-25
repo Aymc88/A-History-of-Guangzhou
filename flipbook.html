@@ -355,6 +355,10 @@ body[data-mode="book"]  .stage-query{display:none !important}
   position:absolute;bottom:22px;right:42px;color:var(--ink-soft);
   font-variant-numeric:tabular-nums;font-size:12px;letter-spacing:.18em;
 }
+.page .author{
+  position:absolute;bottom:22px;left:42px;color:var(--ink-soft);
+  font-size:11px;letter-spacing:.12em;opacity:.7;font-style:italic;
+}
 
 /* Cover page */
 .page.cover{
@@ -786,6 +790,14 @@ body[data-mode="book"]  .stage-query{display:none !important}
     });
     applyLang();
     updateFlipState();
+    // add author name to every page
+    bookEl.querySelectorAll(".page").forEach(page => {
+      const a = document.createElement("div");
+      a.className = "author";
+      a.setAttribute("data-zh", "陈一鸣");
+      a.setAttribute("data-en", "Amanda Chen");
+      page.appendChild(a);
+    });
   }
 
   function renderBookPage(p, i) {
