@@ -58,7 +58,7 @@ def _svg_for(motif: str, topic_id: str | None = None) -> str:
     return _rich_illus_for(topic_id, motif)
 
 
-# Real QR code PNG loaded dynamically for the Guangzhou project link
+# Real QR code PNGs loaded dynamically for the Guangzhou project link
 def _load_qr_data_url() -> str:
     import base64
     from pathlib import Path
@@ -68,7 +68,17 @@ def _load_qr_data_url() -> str:
         return f"data:image/png;base64,{encoded}"
     return ""
 
+def _load_game_qr_data_url() -> str:
+    import base64
+    from pathlib import Path
+    path = Path(__file__).parent.parent / "assets" / "illustrations" / "game-qr.png"
+    if path.exists():
+        encoded = base64.b64encode(path.read_bytes()).decode("utf-8")
+        return f"data:image/png;base64,{encoded}"
+    return ""
+
 QR_DATA_URL = _load_qr_data_url()
+GAME_QR_DATA_URL = _load_game_qr_data_url()
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +130,7 @@ def build_html(title: str = "广州两千八百年 · Guangzhou History Flipbook
                         else t["aliases"][0]
                         for t in TOPICS[:8]],
         "qr_svg": QR_DATA_URL,
+        "game_qr": GAME_QR_DATA_URL,
     }
     payload_json = json.dumps(payload, ensure_ascii=False)
 
@@ -191,8 +202,8 @@ def build_html(title: str = "广州两千八百年 · Guangzhou History Flipbook
         f'      <button id="next">›</button>\n'
         f'    </nav>\n'
         f'    <div class="book" id="book" aria-live="polite"></div>\n'
-        f'    <div class="hint" data-zh="← → 翻页 · ↑↓ 首尾页 · L 切换语言 · T 时间线 · F 返回查询"\n'
-        f'                      data-en="← → flip · ↑↓ start/end · L language · T timeline · F back to search"></div>\n'
+        f'    <div class="hint" data-zh="← → 翻页 · ↑↓ 首尾页 · L 切换语言 · T 时间线 · Q 二维码 · F 返回查询"\n'
+        f'                      data-en="← → flip · ↑↓ start/end · L language · T timeline · Q QR codes · F back to search"></div>\n'
         f'  </main>\n'
         f'\n'
         f'  <script id="payload" type="application/json">{payload_json}</script>\n'
@@ -603,6 +614,33 @@ body[data-mode="book"]  .stage-query{display:none !important}
 .page.back h1{font-size:32px}
 .page.back p{color:var(--ink-soft);font-size:15px;line-height:1.8;max-width:520px;margin:0 auto}
 
+/* QR codes page */
+.page.qr{
+  background:radial-gradient(ellipse at 50% 50%, #f5ead0 0%, #e8d4a0 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.qr-page-content{
+  display:flex;gap:48px;align-items:center;justify-content:center;
+  flex:1;padding:20px;
+}
+.qr-item{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+.qr-item .qr-wrap{
+  width:200px;height:200px;padding:12px;
+  background:#fff;border-radius:16px;
+  box-shadow:0 8px 28px rgba(0,0,0,0.12);
+  border:1px solid var(--paper-edge);
+  display:flex;align-items:center;justify-content:center;
+}
+.qr-item .qr-wrap img{
+  width:100%;height:100%;object-fit:contain;border-radius:4px;
+}
+.qr-item small{
+  color:var(--ink-soft);font-size:12px;opacity:.85;
+  letter-spacing:0.05em;text-align:center;
+}
+
 /* Subtle paper fibre texture using svg data URI */
 .page{
   background-image:
@@ -922,6 +960,7 @@ _JS = r"""
     bookPages.push({ kind:"cover" });
     payload.chapters.forEach(c => bookPages.push({ kind:"chapter", data:c }));
     bookPages.push({ kind:"timeline", data: payload.timeline });
+    bookPages.push({ kind:"qr" });
     bookPages.push({ kind:"back" });
     bookEl.innerHTML = "";
     bookPages.forEach((p, i) => {
@@ -979,20 +1018,34 @@ _JS = r"""
           ${folio}
         </section>`);
     }
+    if (p.kind === "qr") {
+      return el(`
+        <section class="page qr">
+          <div class="qr-page-content">
+            <div class="qr-item">
+              <div class="qr-wrap">
+                <img src="${payload.qr_svg}" alt="Project QR">
+              </div>
+              <small data-zh="扫码探索广州项目" data-en="Scan to explore Guangzhou Project"></small>
+            </div>
+            <div class="qr-item">
+              <div class="qr-wrap">
+                <img src="${payload.game_qr}" alt="Game QR">
+              </div>
+              <small data-zh="扫码体验互动游戏" data-en="Scan to play the game"></small>
+            </div>
+          </div>
+          ${folio}
+        </section>`);
+    }
     return el(`
       <section class="page back">
         <div class="page-content" style="align-items: center; justify-content: center; height: 100%;">
-          <div class="back-text" style="flex: 1.2; display: flex; flex-direction: column; gap: 16px; justify-content: center; height: 100%; min-width: 0;">
+          <div class="back-text" style="flex: 1; display: flex; flex-direction: column; gap: 16px; justify-content: center; height: 100%; min-width: 0;">
             <h1 data-zh="谢谢观赏" data-en="Thank You" style="font-size: 38px; margin: 0; color: var(--ink);"></h1>
             <p data-zh="广州的故事远不止于此。下次来，请去陈家祠看看砖雕，在沙面散步，到永庆坊喝一盅早茶，再去珠江夜游看小蛮腰。"
                data-en="There is far more to Guangzhou than these pages. Next time, drift through Chen Clan Hall's brick carvings, stroll Shamian, take yum cha in Yongqingfang, and see the Canton Tower light the Pearl River at night."
                style="font-size: 15.5px; line-height: 1.85; color: var(--ink-soft); text-align: justify; margin: 0;"></p>
-          </div>
-          <div class="back-qr" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-width: 0; padding-left: 20px;">
-            <div class="qr-wrap" style="width: 170px; height: 170px; padding: 8px; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); border: 1px solid var(--paper-edge); display: flex; align-items: center; justify-content: center;">
-              <img src="${payload.qr_svg}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;" alt="QR Code">
-            </div>
-            <small data-zh="扫码探索广州项目" data-en="Scan to explore Guangzhou Project" style="color: var(--ink-soft); font-size: 11px; opacity: 0.8; letter-spacing: 0.05em; text-align: center; white-space: nowrap;"></small>
           </div>
         </div>
         ${folio}
@@ -1048,6 +1101,7 @@ _JS = r"""
         case "ArrowUp":              e.preventDefault(); bookCurrent = 0; updateFlipState(); break;
         case "ArrowDown":            e.preventDefault(); bookCurrent = bookPages.length - 1; updateFlipState(); break;
         case "t": case "T":          jumpBook("timeline"); break;
+        case "q": case "Q":          jumpBook("qr"); break;
         case "Home":                 bookCurrent = 0; updateFlipState(); break;
         case "End":                  bookCurrent = bookPages.length - 1; updateFlipState(); break;
       }
